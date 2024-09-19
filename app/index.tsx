@@ -14,12 +14,14 @@ import {
   TouchableOpacity,
   ListRenderItem
 } from "react-native";
+import { useFocusEffect } from 'expo-router';
 import { useRouter } from 'expo-router';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const API_KEY = process.env.EXPO_PUBLIC_API_KEY;
 
 export interface DataItem {
+  id: string;
   email: string;
   message: string;
   timestamp: string;
@@ -45,7 +47,7 @@ export default function Index() {
         
         // Check if the request was successful
         if (!response.ok) {
-          console.log(response);
+          console.error(response);
           setLoading(false);
           setError(`HTTP error! status: ${response.status}`);
         }
@@ -70,6 +72,7 @@ export default function Index() {
     router.push({
       pathname: `/outgoing/[email]`,
       params: {
+        id: item.id,
         email: item.email,
         message: item.message,
         date: convertTimestamp(item.timestamp),
@@ -77,9 +80,11 @@ export default function Index() {
     });
   }, []);
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMessages();
+    }, [])
+  );
 
   const memoizedData = useMemo(() => data, [data]);
   const renderItem: ListRenderItem<DataItem> = useCallback(({ item }) => (
